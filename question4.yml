@@ -1,0 +1,48 @@
+
+drop table if exists #IsWon
+select distinct
+      a.ID
+    , a.Source
+    , a.industry
+    , a.fleet_size
+    , round((count( distinct case when o.is_won = 'true' then a.ID end) / count(distinct case when o.is_won is not null then a.ID end)),2) as 'WonConversion'
+into #IsWon
+from
+    (
+      select distinct
+          l.ID
+          , l.Source
+          , l.industry
+          , l.fleet_size
+          --, datepart(cast(left(c.CreatedAt, 10) as date)) as 'ConvertAt_Month'
+          , o.Is_Won
+      from leads l
+      join contacts c with (nolock) on c.Lead_ID = l.ID
+      join opportunities o with (nolock) on o.Account_ID = c.Account_ID
+    ) a
+group by ID, Source, industry, ConvertAt_Month
+
+
+-- Highest WonRate / Source
+select
+  Source
+, avg(WonConversion)
+from #IsWon
+group by Source
+order by avg(WonConversion) desc
+
+-- Highest WonRate / Industry
+select
+  Industry
+, avg(WonConversion)
+from #IsWon
+group by Industry
+order by avg(WonConversion) desc
+
+-- Highest WonRate / FleetSize
+select
+  fleet_size
+, avg(WonConversion)
+from #IsWon
+group by fleet_size
+order by avg(WonConversion) desc

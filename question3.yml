@@ -1,0 +1,31 @@
+
+drop table if exists #Foundation
+select distinct
+    l.ID
+  , round(count (distinct case when l.ID is not null and c.Lead_ID is not null then c.LeadID end) / count(distinct case when l.ID is not null then l.ID end),2) as 'ConversionRate'
+  , l.fleet_size
+  , l.industry
+  , datepart(cast(left(c.CreatedAt, 10) as date)) as 'ConvertAt_Month'
+  , cast(left(c.CreatedAt, 10) as date) as 'ConvertedAt_Date'
+into #Foundation
+from leads l
+left join contacts c with (nolock) on l.ID = c.Lead_ID
+
+
+
+select
+  avg(ConversionRate)
+, fleet_size
+, ConvertAt_Month
+from #Foundation
+group by ConvertAt_Month, fleet_size
+order by ConvertAt_Month, avg(ConversionRate)  desc
+
+
+select
+  avg(ConversionRate)
+, industry
+, ConvertAt_Month
+from #Foundation
+group by ConvertAt_Month, industry
+order by ConvertAt_Month, avg(ConversionRate)  desc

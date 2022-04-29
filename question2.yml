@@ -1,0 +1,119 @@
+
+
+-- identify sources converted and convert dates
+drop table if exists #LeadSources
+select
+    a.Lead_ID as 'LeadID'
+  , Source
+  , a.CreatedAt_Date
+  , datepart('day',ConvertedAt_Date) as 'ConvertedAt_Day'
+  , datepart('week',ConvertedAt_Date) as 'ConvertedAt_Week'
+  , datepart('month',ConvertedAt_Date) as 'ConvertedAt_Month'
+into #LeadSources
+from
+    (
+      select
+          c.LeadID
+        , l.Source
+        , cast(left(c.CreatedAt, 10) as date) as 'ConvertedAt_Date'
+      from leads l
+      join contacts c with (nolock) on l.ID = c.Lead_ID
+    )
+
+
+
+-- identify conversion source / date grain
+select
+  TotalLeads
+, sources as 'TopLeadSource'
+, 'Day' as 'TimeGrain'
+from
+  (
+  select
+      AvgCount
+    , sources
+    , rownumber () over ( order by TotalLeads desc) as rn
+  from
+        (
+          select
+                sum(TotalCount) as 'TotalLeads'
+              , sources
+          from
+                (
+                  select
+                          count (LeadID) as 'TotalCount'
+                        , Sources
+                        , CreatedAt_Day
+                  from #LeadSources
+                  group by ConvertedAtAt_Day, Sources
+                ) a
+          group by Sources
+        ) b
+    ) c
+where rn = 1
+
+
+UNION ALL
+
+
+
+select
+  TotalLeads
+, sources as 'TopLeadSource'
+, 'Week' as 'TimeGrain'
+from
+  (
+  select
+      AvgCount
+    , sources
+    , rownumber () over ( order by TotalLeads desc) as rn
+  from
+        (
+          select
+                sum(TotalCount) as 'TotalLeads'
+              , sources
+          from
+                (
+                  select
+                          count (LeadID) as 'TotalCount'
+                        , Sources
+                        , CreatedAt_Week
+                  from #LeadSources
+                  group by ConvertedAtAt_Week, Sources
+                ) a
+          group by Sources
+        ) b
+    ) c
+where rn = 1
+
+UNION ALL
+
+
+select
+  TotalLeads
+, sources as 'TopLeadSource'
+, 'Week' as 'TimeGrain'
+from
+  (
+  select
+      AvgCount
+    , sources
+    , rownumber () over ( order by TotalLeads desc) as rn
+  from
+        (
+          select
+                Sum(TotalCount) as 'TotalLeads'
+              , sources
+          from
+                (
+                  select
+                          count (LeadID) as 'TotalCount'
+                        , Sources
+                        , CreatedAt_Week
+                  from #LeadSources
+                  group by ConvertedAtAt_Month, Sources
+                ) a
+          group by Sources
+        ) b
+    ) c
+where rn = 1

@@ -1,0 +1,59 @@
+
+-- convert ConvertedAt date and grab Day, Week, Month ConvertAt data to prep for analysis
+drop table if exists #DateConverstions
+select
+    a.ID
+  , a.CreatedAt_Date
+  , datepart('day',ConvertedAt_Date) as 'ConvertedAt_Day'
+  , datepart('week',ConvertedAt_Date) as 'ConvertedAt_Week'
+  , datepart('month',ConvertedAt_Date) as 'ConvertedAt_Month'
+into #DateConverstions
+from
+    (
+        select
+              id
+            , cast(left(converted_at, 10) as date) as 'ConvertedAt_Date'
+        from leads
+      ) a
+
+
+-- aggregate total avg counts / day, week, month
+select
+  avg (TotalCount) as 'AvgCount'
+, 'AvgDaily' as 'TimeGrain'
+from
+  (
+    select
+        count (ID) as 'TotalCount'
+        , CreatedAt_Day
+        from #DateConverstions
+        group by ConvertedAtAt_Day
+  ) a
+
+UNION ALL
+
+  select
+    avg (TotalCount) as 'AvgCount'
+  , 'AvgWeek' as 'TimeGrain'
+  from
+    (
+      select
+          count (ID) as 'TotalCount'
+          , CreatedAt_Week
+          from #DateConverstions
+          group by ConvertedAtAt_Week
+    ) a
+
+UNION All
+
+select
+  avg (TotalCount) as 'AvgCount'
+, 'AvgMonth' as 'TimeGrain'
+from
+  (
+    select
+        count (ID) as 'TotalCount'
+        , CreatedAt_Month
+        from #DateConverstions
+        group by ConvertedAtAt_Month
+  ) a
