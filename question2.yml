@@ -30,7 +30,7 @@ select
 from
   (
   select
-      AvgCount
+      TotalLeads
     , sources
     , rownumber () over ( order by TotalLeads desc) as rn
   from
@@ -64,7 +64,7 @@ select
 from
   (
   select
-      AvgCount
+      TotalLeads
     , sources
     , rownumber () over ( order by TotalLeads desc) as rn
   from
@@ -96,7 +96,7 @@ select
 from
   (
   select
-      AvgCount
+      TotalLeads
     , sources
     , rownumber () over ( order by TotalLeads desc) as rn
   from
